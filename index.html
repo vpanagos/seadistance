@@ -1,0 +1,129 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<title>Distance from sea</title>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+</head>
+
+<body>
+
+<canvas id="canvas1" width="800" height="700"></canvas>
+
+<script>
+var t0 = performance.now();
+
+
+var maxx=800;
+var maxy=700;
+var maxr=700;
+
+
+var canvas1 = document.getElementById('canvas1');
+var context = canvas1.getContext('2d');
+
+var image = new Image();
+image.src = "greece1.png";
+context.drawImage(image, 0, 0);
+
+var imgd = context.getImageData(0, 0, maxx-1, maxy-1);
+var pix = imgd.data;
+
+function i2x(i) {
+	i=i/4;
+	x=i%maxx;
+	return x;
+}
+
+function i2y(i) {
+	i=i/4;
+	y=Math.floor(i/maxx);
+	return y;
+}
+
+function xy2i(x,y) {
+	x=Math.ceil(x);
+	y=Math.ceil(y);
+	z=(x+y*maxx)*4
+	return (x+y*maxx)*4;
+}
+
+// precalculate sins and coses
+var sintable=new Array();
+var costable=new Array();
+for (i=1;i<=360;i++) {
+	sintable[i]=Math.round(Math.sin(i)*1000);
+	costable[i]=Math.round(Math.cos(i)*1000);
+	sintable[i]=Math.sin(i);
+	costable[i]=Math.cos(i);
+
+}
+
+for (var i = 0, n = pix.length/6; i < n; i += 4) {
+	r=pix[i];
+	g=pix[i+1];
+	b=pix[i+2];
+	a=pix[i+3];
+	if (r==255 && g==255) {
+		x=i2x(i);
+		y=i2y(i);
+		d=0;
+		rad=1;
+
+		// We are over greek territory
+		// Let's find how far the sea is
+		seafound=false;
+		while (seafound==false && rad<=maxr) {
+			for (j=1;j<=360;j++) {
+				rx=sintable[j]*rad;
+				ry=costable[j]*rad;
+				ti=xy2i(rx+x,ry+y);
+				// check if we are above the sea
+				if (pix[ti]==157) {
+					seafound=true;
+					distance=rad;
+				}
+				if (seafound==true)
+					break;
+			}
+			rad++;
+		}
+		pix[i]=120;
+		pix[i+1]=10;
+
+		if (seafound==true) {
+//			pix[i+2]=Math.floor(255*rad/100);
+			pix[i+2]=0;
+			if (rad<70) { pix[i+2]=30; }
+			if (rad<60) { pix[i+2]=70; }
+			if (rad<50) { pix[i+2]=100; }
+			if (rad<40) { pix[i+2]=135; }
+			if (rad<30) { pix[i+2]=175; }
+			if (rad<20) { pix[i+2]=215; }
+			if (rad<10) { pix[i+2]=255; }
+
+
+		} 
+	}
+	if (r==157 && g==199) {
+		// sea
+	}
+	if (r==247 && g==211) {
+		// neighbors
+	}
+}
+
+// Draw the ImageData at the given (x,y) coordinates.
+context.putImageData(imgd, 0, 0);
+
+
+var t1 = performance.now();
+document.write("<br>Calculations took " + (Math.round((t1 - t0)/10))/100 + " seconds.")
+
+
+</script>
+
+</body>
+</html>
