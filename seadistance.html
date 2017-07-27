@@ -1,7 +1,5 @@
 <!DOCTYPE HTML>
-
 <html>
-
 <head>
 	<title>Distance from sea</title>
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
@@ -14,7 +12,6 @@
 
 <script>
 var t0 = performance.now();
-
 
 var maxx=800;
 var maxy=700;
@@ -82,10 +79,11 @@ for (var i=0,n=pix.length;i<n;i+=4) {
 					distance=rad;
 					if (distance>maxrad)
 						maxrad=distance;
-				}
-				if (seafound==true)
 					break;
+				}
 			}
+			if (seafound==true)
+				break;
 			rad++;
 		}
 		pix[i]=120;
@@ -104,15 +102,12 @@ for (var i=0,n=pix.length;i<n;i+=4) {
 	}
 }
 
-// Draw the ImageData at the given (x,y) coordinates.
+// Draw ImageData back to canvas
 context.putImageData(imgd, 0, 0);
-
 
 var t1 = performance.now();
 document.write("<br>Calculations took " + (Math.round((t1 - t0)/10))/100 + " seconds.")
 document.write("<br>Maximum distance is " + maxrad);
-
-
 </script>
 
 </body>
