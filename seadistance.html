@@ -19,7 +19,7 @@ var t0 = performance.now();
 var maxx=800;
 var maxy=700;
 var maxr=700;
-
+var maxrad=0;
 
 var canvas1 = document.getElementById('canvas1');
 var context = canvas1.getContext('2d');
@@ -80,6 +80,8 @@ for (var i=0,n=pix.length;i<n;i+=4) {
 				if (pix[ti]==157) {
 					seafound=true;
 					distance=rad;
+					if (distance>maxrad)
+						maxrad=distance;
 				}
 				if (seafound==true)
 					break;
@@ -90,17 +92,8 @@ for (var i=0,n=pix.length;i<n;i+=4) {
 		pix[i+1]=10;
 
 		if (seafound==true) {
-//			pix[i+2]=Math.floor(255*rad/100);
 			pix[i+2]=0;
-			if (rad<70) { pix[i+2]=30; }
-			if (rad<60) { pix[i+2]=70; }
-			if (rad<50) { pix[i+2]=100; }
-			if (rad<40) { pix[i+2]=135; }
-			if (rad<30) { pix[i+2]=175; }
-			if (rad<20) { pix[i+2]=215; }
-			if (rad<10) { pix[i+2]=255; }
-
-
+			pix[i+2]=255-Math.round((rad/100)*255);
 		} 
 	}
 	if (r==157 && g==199) {
@@ -117,6 +110,7 @@ context.putImageData(imgd, 0, 0);
 
 var t1 = performance.now();
 document.write("<br>Calculations took " + (Math.round((t1 - t0)/10))/100 + " seconds.")
+document.write("<br>Maximum distance is " + maxrad);
 
 
 </script>
