@@ -32,24 +32,32 @@ var imgd = context.getImageData(0, 0, maxx-1, maxy-1);
 var pix = imgd.data;
 
 function i2x(i) {
-	i=i/4;
+	i=i>>2;
 	x=i%maxx;
 	return x;
 }
 
 function i2y(i) {
-	i=i/4;
+	i=i>>2;
 	y=Math.floor(i/maxx);
 	return y;
 }
 
 function xy2i(x,y) {
-	x=Math.round(x);
-	y=Math.round(y);
-	return (x+y*maxx)*4;
+	x=Math.ceil(x/1000);
+	y=Math.ceil(y/1000);
+	return (x+y*maxx)<<2;
 }
 
-for (var i = 0, n = pix.length; i < n; i += 4) {
+// precalculate sins and coses
+var sintable=new Array();
+var costable=new Array();
+for (i=1;i<=360;i++) {
+	sintable[i]=Math.round(Math.sin(i)*1000);
+	costable[i]=Math.round(Math.cos(i)*1000);
+}
+
+for (var i=0,n=pix.length;i<n;i+=4) {
 	r=pix[i];
 	g=pix[i+1];
 	b=pix[i+2];
@@ -65,9 +73,9 @@ for (var i = 0, n = pix.length; i < n; i += 4) {
 		seafound=false;
 		while (seafound==false && rad<=maxr) {
 			for (j=1;j<=360;j++) {
-				rx=Math.sin(j)*rad;
-				ry=Math.cos(j)*rad;
-				ti=xy2i(rx+x,ry+y);
+				rx=sintable[j]*rad;
+				ry=costable[j]*rad;
+				ti=xy2i(rx+x*1000,ry+y*1000);
 				// check if we are above the sea
 				if (pix[ti]==157) {
 					seafound=true;
