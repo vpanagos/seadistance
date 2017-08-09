@@ -6,27 +6,37 @@
 	<meta content="utf-8" http-equiv="encoding">
 </head>
 
-<body>
-
-<canvas id="canvas1" width="800" height="700"></canvas>
-
 <script>
-var t0 = performance.now();
+var t0;
+var t1;
 
 var maxx=800;
 var maxy=700;
 var maxr=700;
 var maxrad=0;
 
-var canvas1 = document.getElementById('canvas1');
-var context = canvas1.getContext('2d');
+var canvas1;
+var context;
+var image;
+imagefilename = "greece1.png";
 
-var image = new Image();
-image.src = "greece1.png";
-context.drawImage(image, 0, 0);
+var imgd;
+var pix;
 
-var imgd = context.getImageData(0, 0, maxx-1, maxy-1);
-var pix = imgd.data;
+var sintable=new Array();
+var costable=new Array();
+
+function initialize() {
+	canvas1 = document.getElementById('canvas1');
+	context = canvas1.getContext('2d');
+
+	image = new Image();
+	image.src = imagefilename;
+	context.drawImage(image, 0, 0);
+
+	imgd = context.getImageData(0, 0, maxx-1, maxy-1);
+	pix = imgd.data;
+}
 
 function i2x(i) {
 	i=i>>2;
@@ -46,68 +56,98 @@ function xy2i(x,y) {
 	return (x+y*maxx)<<2;
 }
 
+</script>
+
+
+<body onload="initialize();">
+
+<canvas id="canvas1" width="800" height="700"></canvas>
+<br>
+<button id="b1" onclick="start();">Start</button>
+<button id="b4" onclick="initialize();">Initialize</button>
+
+<script>
 // precalculate sins and coses
-var sintable=new Array();
-var costable=new Array();
-for (i=1;i<=360;i++) {
-	sintable[i]=Math.round(Math.sin(i)*1000);
-	costable[i]=Math.round(Math.cos(i)*1000);
+function precalculate() {
+	console.log('2');
+	for (i=1;i<=360;i++) {
+		sintable[i]=Math.round(Math.sin(i)*1000);
+		costable[i]=Math.round(Math.cos(i)*1000);
+	}
 }
 
-for (var i=0,n=pix.length;i<n;i+=4) {
-	r=pix[i];
-	g=pix[i+1];
-	b=pix[i+2];
-	a=pix[i+3];
-	if (r==255 && g==255) {
-		x=i2x(i);
-		y=i2y(i);
-		d=0;
-		rad=1;
+function calculate(n) {
+	for (var i=0,n=pix.length/n;i<n;i+=4) {
+		r=pix[i];
+		g=pix[i+1];
+		b=pix[i+2];
+		a=pix[i+3];
+		if (r==255 && g==255) {
+			x=i2x(i);
+			y=i2y(i);
+			d=0;
+			rad=1;
 
-		// We are over greek territory
-		// Let's find how far the sea is
-		seafound=false;
-		while (seafound==false && rad<=maxr) {
-			for (j=1;j<=360;j++) {
-				rx=sintable[j]*rad;
-				ry=costable[j]*rad;
-				ti=xy2i(rx+x*1000,ry+y*1000);
-				// check if we are above the sea
-				if (pix[ti]==157) {
-					seafound=true;
-					distance=rad;
-					if (distance>maxrad)
-						maxrad=distance;
-					break;
+			// We are over greek territory
+			// Let's find how far the sea is
+			seafound=false;
+			while (seafound==false && rad<=maxr) {
+				for (j=1;j<=360;j++) {
+					rx=sintable[j]*rad;
+					ry=costable[j]*rad;
+					ti=xy2i(rx+x*1000,ry+y*1000);
+					// check if we are above the sea
+					if (pix[ti]==157) {
+						seafound=true;
+						distance=rad;
+						if (distance>maxrad)
+							maxrad=distance;
+						break;
+					}
 				}
+				if (seafound==true)
+					break;
+				rad++;
 			}
-			if (seafound==true)
-				break;
-			rad++;
-		}
-		pix[i]=120;
-		pix[i+1]=10;
+			pix[i]=120;
+			pix[i+1]=10;
 
-		if (seafound==true) {
-			pix[i+2]=0;
-			pix[i+2]=255-Math.round((rad/100)*255);
-		} 
-	}
-	if (r==157 && g==199) {
-		// sea
-	}
-	if (r==247 && g==211) {
-		// neighbors
+			if (seafound==true) {
+				pix[i+2]=0;
+				pix[i+2]=255-Math.round((rad/100)*255);
+			} 
+		}
+		if (r==157 && g==199) {
+			// sea
+		}
+		if (r==247 && g==211) {
+			// neighbors
+		}
 	}
 }
 
-// Draw ImageData back to canvas
-context.putImageData(imgd, 0, 0);
+function test1(n,s) {
+	for (var i=0,n=pix.length/n;i<n;i+=4) {
+		r=pix[i];
+		g=pix[i+1];
+		b=pix[i+2];
+		a=pix[i+3];
+		pix[i+1]=g-s;
+	}
+	context.putImageData(imgd, 0, 0);
+}
 
-var t1 = performance.now();
-document.write("<br>Calculations took " + (Math.round((t1 - t0)/10))/100 + " seconds.")
-document.write("<br>Maximum distance is " + maxrad);
+function start() {
+	t0 = performance.now();
+	precalculate();
+	calculate(1);
+	context.putImageData(imgd, 0, 0);
+	t1 = performance.now();
+
+	context.font = "10px Arial";
+	context.fillText("Calculations took " + (Math.round((t1 - t0)/10))/100 + " seconds.",10,maxy-20); 
+	context.fillText("Maximum distance is " + maxrad,10,maxy-10); 
+}
 </script>
 
 </body>
